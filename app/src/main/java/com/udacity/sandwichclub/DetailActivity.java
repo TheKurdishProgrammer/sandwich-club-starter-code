@@ -1,12 +1,17 @@
 package com.udacity.sandwichclub;
 
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import com.udacity.sandwichclub.databinding.ActivityDetailBinding;
 import com.udacity.sandwichclub.model.Sandwich;
 import com.udacity.sandwichclub.utils.JsonUtils;
 
@@ -14,12 +19,13 @@ public class DetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_POSITION = "extra_position";
     private static final int DEFAULT_POSITION = -1;
+    private ActivityDetailBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
-
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ImageView ingredientsIv = findViewById(R.id.image_iv);
 
         Intent intent = getIntent();
@@ -43,10 +49,21 @@ public class DetailActivity extends AppCompatActivity {
             return;
         }
 
-        populateUI();
-        Picasso.with(this)
+        populateUI(sandwich);
+        Picasso.get()
                 .load(sandwich.getImage())
-                .into(ingredientsIv);
+
+                .into(ingredientsIv, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        binding.progress.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+
+                    }
+                });
 
         setTitle(sandwich.getMainName());
     }
@@ -56,7 +73,26 @@ public class DetailActivity extends AppCompatActivity {
         Toast.makeText(this, R.string.detail_error_message, Toast.LENGTH_SHORT).show();
     }
 
-    private void populateUI() {
+    private void populateUI(Sandwich sandwich) {
+
+        binding.mainName.setText(sandwich.getMainName());
+        binding.alsoKnownTv.setText(sandwich.getAlsoKnownAs().toString());
+        binding.originTv.setText(sandwich.getPlaceOfOrigin());
+        binding.descriptionTv.setText(sandwich.getDescription());
+        binding.ingredientsTv.setText(sandwich.getIngredients().toString());
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
 
     }
 }
